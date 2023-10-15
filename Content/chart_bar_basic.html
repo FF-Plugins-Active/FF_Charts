@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	
+	<body>
+		<div>
+			<canvas id="myChart"></canvas>
+		</div>
+		<script>		
+			// Hide loader from screen.
+			function hideloader() 
+			{
+				document.getElementById('loading').style.display = 'none';
+			}
+		
+			const ctx = document.getElementById('myChart');
+			
+			const ChartConfig = {
+				// "bar", "line", "pie", "doughnut", "polarArea", "radar"
+				type: 'bar',
+				data: 
+				{
+					labels: ['Burak', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+					datasets: [
+					{
+						//yAxisID: "y1",
+						label: '# of Votes',
+						data: [12, 19, 3, 5, 2, 3],
+						borderWidth: 3
+					}
+				]
+				},
+
+				options: 
+				{
+					// https://www.chartjs.org/docs/latest/configuration/device-pixel-ratio.html
+					devicePixelRatio: window.devicePixelRatio,
+					responsive: true,
+					scales: 
+					{
+						y: 
+						{
+							display: true,
+							beginAtZero: true,
+							position: "left",
+							
+							title: 
+							{
+								display: true,
+								text: "Y1 Axis",
+								color: "#9ad0f5",
+								
+								font:
+								{
+									size: 18,
+									weight: "bold"
+								}	
+							}
+						}
+					}
+				}
+			}
+
+			// Construct chart based on configurations.
+			const BasicChart = new Chart(ctx, ChartConfig);
+			
+			// Change chart size based on browser size.
+			window.onresize = function()
+			{
+				BasicChart.resize();
+				BasicChart.update();
+				BasicChart.render();
+			}
+
+			function axis_add(newAxisId, newAxisTitle, newPosition, newColor)
+			{
+				const newAxis = BasicChart.options.scales.newAxisId = 
+				{
+					display: true,
+					beginAtZero: true,
+					position: newPosition,
+							
+					title: 
+					{
+						display: true,
+						text: newAxisTitle,
+						color: newColor,
+								
+						font:
+						{
+							size: 18,
+							weight: "bold"
+						}	
+					}
+				};
+
+				BasicChart.register(newAxis);
+				BasicChart.update();
+				BasicChart.render();
+			}
+			axis_add("y2", "Y2 Axis", "right", "red");
+
+			function axis_add_grid(axisId, threshold, smallerColor, biggerColor, equalColor)
+			{
+				BasicChart.options.scales[axisId].grid =
+				{
+					color: function(context) 
+								{
+            						if (context.tick.value < threshold)
+									{
+              							return smallerColor;
+            						}
+									
+									else if (context.tick.value > threshold) 
+									{
+              							return biggerColor;
+            						}
+						
+									return equalColor;
+								}
+				}
+
+				BasicChart.update();
+				BasicChart.render();
+			}
+			//axis_add_grid('y1', 10, "red", "green", "black");
+
+			//Add new dataset to the chart. For example, multiple bar or lines.
+			function dataset_add(newColor, newAxisId, newLabel, newBorderWidth, newType, newData)
+			{
+				BasicChart.data.datasets.push(
+					{
+						backgroundColor: newColor,
+						yAxisID: newAxisId,
+						label : newLabel,
+						borderWidth : newBorderWidth,
+						type: newType,
+						data : newData,
+					}
+				);
+
+				BasicChart.update();
+				BasicChart.render();
+			}
+			// "bar", "line", "pie", "doughnut", "polarArea", "radar"
+			// dataset_add("red", "y2", "Unreal Dataset", 3, "line", [0.5, 0.1, 0.3, 0.9]);
+			dataset_add("#ff0000", "y2", "Unreal Dataset", 3, "bar", [0.5, 0.1, 0.3, 0.9]);
+
+			// Change label of target dataset.
+			function dataset_change_label(dataSetIndex, newLabel)
+			{
+				BasicChart.data.datasets[dataSetIndex].label = newLabel;
+				
+				BasicChart.update();
+				BasicChart.render();
+			}
+			//dataset_change_label(0, "Unreal Dataset");
+
+			// Add new data to the target dataset.
+			function data_add(indexDataset, name, value, deleteFirst)
+			{
+				if(deleteFirst)
+				{
+					BasicChart.data.labels.splice(0, 1);
+					BasicChart.data.datasets[indexDataset].data.splice(0, 1);
+				}
+
+				BasicChart.data.labels.push(name);
+				BasicChart.data.datasets[indexDataset].data.push(value);
+
+				BasicChart.update();
+				BasicChart.render();
+			}
+			//data_add(0, "Unreal", 10, true);
+
+			// Add new data to the target dataset.
+			function data_remove(indexDataset, indexValue, count)
+			{
+				BasicChart.data.labels.splice(indexValue, 1);
+				BasicChart.data.datasets[indexDataset].data.splice(indexValue, 1);
+
+				BasicChart.update();
+				BasicChart.render();
+			}
+			//data_remove(0, 0, 1);
+
+			function data_update_label(indexDataset, indexLabel, newLabel)
+			{
+				BasicChart.data.labels[indexLabel] = newLabel;
+
+				BasicChart.update();
+				BasicChart.render();
+			}
+			//data_update_label(0, 0, "Eray");
+
+			function data_update_value(indexDataset, indexValue, newValue)
+			{
+				BasicChart.data.datasets[indexDataset].data[indexValue] = newValue;
+
+				BasicChart.update();
+				BasicChart.render();
+			}
+			//data_update_value(0, 0, 30);
+
+		</script>
+	</body>
+</html>
