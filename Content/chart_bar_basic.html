@@ -20,12 +20,12 @@
 				type: 'bar',
 				data: 
 				{
-					labels: ['Burak', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+					labels: [],
 					datasets: [
 					{
-						//yAxisID: "y1",
+						yAxisID: "y1",
 						label: '# of Votes',
-						data: [12, 19, 3, 5, 2, 3],
+						data: [],
 						borderWidth: 3
 					}
 				]
@@ -38,7 +38,7 @@
 					responsive: true,
 					scales: 
 					{
-						y: 
+						y1: 
 						{
 							display: true,
 							beginAtZero: true,
@@ -52,7 +52,7 @@
 								
 								font:
 								{
-									size: 18,
+									size: 24,
 									weight: "bold"
 								}	
 							}
@@ -72,37 +72,195 @@
 				BasicChart.render();
 			}
 
-			function axis_add(newAxisId, newAxisTitle, newPosition, newColor)
+			//Add new dataset to the chart. For example, multiple bar or lines. Supported types are "bar", "line", "pie", "doughnut", "polarArea", "radar".
+			function dataset_add(newColor, newAxisId, newLabel, newBorderWidth, newType)
 			{
-				const newAxis = BasicChart.options.scales.newAxisId = 
-				{
-					display: true,
-					beginAtZero: true,
-					position: newPosition,
-							
-					title: 
+				BasicChart.data.datasets.push(
 					{
-						display: true,
-						text: newAxisTitle,
-						color: newColor,
-								
-						font:
-						{
-							size: 18,
-							weight: "bold"
-						}	
+						backgroundColor: newColor,
+						yAxisID: newAxisId,
+						label : newLabel,
+						borderWidth : newBorderWidth,
+						type: newType
 					}
-				};
+				);
 
-				BasicChart.register(newAxis);
 				BasicChart.update();
 				BasicChart.render();
 			}
-			axis_add("y2", "Y2 Axis", "right", "red");
+			dataset_add("red", "y2", "Unreal Dataset", 3, "bar");
+
+			// Change label of target dataset.
+			function dataset_change_label(indexDataset, newLabel)
+			{
+				const targetDataSet = BasicChart.data.datasets[indexDataset];
+				if(targetDataSet == null)
+				{
+					console.log("Target dataset is null.")
+					return;
+				}
+
+				targetDataSet.label = newLabel;
+				
+				BasicChart.update();
+				BasicChart.render();
+			}
+			//dataset_change_label(1, "Unreal Dataset New Name");
+
+			function data_add(indexDataset, newName, newValue, deleteBefore)
+			{
+				const targetDataSet = BasicChart.data.datasets[indexDataset];
+				if(targetDataSet == null)
+				{
+					console.log("Target dataset is null.")
+					return;
+				}
+
+				if(newName !== null)
+				{
+					if(deleteBefore)
+					{
+						BasicChart.data.labels.splice(0, Object.keys(newName).length);
+					}
+
+					newName.forEach(element => 
+					{
+						BasicChart.data.labels.push(element);
+					});
+				}
+
+				if(newValue !== null)
+				{
+					if(deleteBefore)
+					{
+						targetDataSet.data.splice(0, Object.keys(newValue).length);
+					}
+
+					if(newName !== null || BasicChart.data.labels.lenght > 0)
+					{
+						newValue.forEach(element =>
+						{
+							targetDataSet.data.push(element);
+						});
+					}
+					
+					else
+					{
+						console.log("There is no label for value.")
+					}
+				}
+				
+				BasicChart.update();
+				BasicChart.render();
+			}
+			data_add(0, ['eray', 'burak', 'mustafa'], [10, 5, 9], false);
+			//data_add(0, ['c++', 'flutter', 'adeko'], [20, 10, 18], true);
+
+			// Add new data to the target dataset.
+			function data_remove(indexDataset, indexValue, count, bDeleteLabel, bSetZero)
+			{
+				const targetDataSet = BasicChart.data.datasets[indexDataset];
+				if(targetDataSet == null)
+				{
+					console.log("Target dataset is null.")
+					return;
+				}
+
+				if(bSetZero)
+				{
+					targetDataSet.data[indexValue] = 0;
+				}
+
+				else
+				{
+					targetDataSet.data.splice(indexValue, count);
+				}
+
+				if(bDeleteLabel && !bSetZero)
+				{
+					BasicChart.data.labels.splice(indexValue, count);
+				}
+
+				BasicChart.update();
+				BasicChart.render();
+			}
+			//data_remove(0, 1, 1, true, false); // This will delete second entry completely. "bSetZero" have to be false. 
+			//data_remove(0, 1, 1, false, true); // This will make second entry to 0. "bDeleteLabel" can be true or false. It won't matter.
+
+			function data_update_label(indexDataset, indexLabel, newLabel)
+			{
+				if(BasicChart.data.labels[indexLabel] == null)
+				{
+					console.log("Target label is null.")
+					return;
+				}
+
+				BasicChart.data.labels[indexLabel] = newLabel;
+
+				BasicChart.update();
+				BasicChart.render();
+			}
+			//data_update_label(0, 0, "Unreal");
+
+			function data_update_value(indexDataset, indexValue, newValue)
+			{
+				if(BasicChart.data.datasets[indexDataset] == null)
+				{
+					console.log("Target dataset is null.")
+					return;
+				}
+
+				if(BasicChart.data.datasets[indexDataset].data[indexValue] == null)
+				{
+					console.log("Target data is null.")
+					return;
+				}
+
+				BasicChart.data.datasets[indexDataset].data[indexValue] = newValue;
+
+				BasicChart.update();
+				BasicChart.render();
+			}
+			//data_update_value(0, 0, 100);
+
+			function axis_set_style(axisId, newDisplay, newBeginAtZero, newAxisTitle, newColor, newPosition, newFontSize, newFontWeight)
+			{
+				const targetAxis = BasicChart.options.scales[axisId];
+				if (targetAxis == null)
+				{
+					console.log("Target axis is null.");
+					return;
+				}
+
+				targetAxis.display = newDisplay;
+				targetAxis.beginAtZero = newBeginAtZero;
+				targetAxis.position = newPosition;
+				
+				targetAxis.title.display = true;
+				targetAxis.title.text = newAxisTitle;
+				targetAxis.title.color = newColor;
+
+				targetAxis.title.font = 
+				{
+					size: newFontSize,
+					weight: newFontWeight
+				}
+
+				BasicChart.update();
+				BasicChart.render();
+			}
+			axis_set_style("y2", true, true, "New Axis", "red", "left", 24, "bold");
 
 			function axis_add_grid(axisId, threshold, smallerColor, biggerColor, equalColor)
 			{
-				BasicChart.options.scales[axisId].grid =
+				const targetAxis = BasicChart.options.scales[axisId];
+				if(targetAxis == null)
+				{
+					console.log("Target axis is null.");
+					return;
+				}
+				
+				targetAxis.grid =
 				{
 					color: function(context) 
 								{
@@ -124,83 +282,6 @@
 				BasicChart.render();
 			}
 			//axis_add_grid('y1', 10, "red", "green", "black");
-
-			//Add new dataset to the chart. For example, multiple bar or lines.
-			function dataset_add(newColor, newAxisId, newLabel, newBorderWidth, newType, newData)
-			{
-				BasicChart.data.datasets.push(
-					{
-						backgroundColor: newColor,
-						yAxisID: newAxisId,
-						label : newLabel,
-						borderWidth : newBorderWidth,
-						type: newType,
-						data : newData,
-					}
-				);
-
-				BasicChart.update();
-				BasicChart.render();
-			}
-			// "bar", "line", "pie", "doughnut", "polarArea", "radar"
-			// dataset_add("red", "y2", "Unreal Dataset", 3, "line", [0.5, 0.1, 0.3, 0.9]);
-			dataset_add("#ff0000", "y2", "Unreal Dataset", 3, "bar", [0.5, 0.1, 0.3, 0.9]);
-
-			// Change label of target dataset.
-			function dataset_change_label(dataSetIndex, newLabel)
-			{
-				BasicChart.data.datasets[dataSetIndex].label = newLabel;
-				
-				BasicChart.update();
-				BasicChart.render();
-			}
-			//dataset_change_label(0, "Unreal Dataset");
-
-			// Add new data to the target dataset.
-			function data_add(indexDataset, name, value, deleteFirst)
-			{
-				if(deleteFirst)
-				{
-					BasicChart.data.labels.splice(0, 1);
-					BasicChart.data.datasets[indexDataset].data.splice(0, 1);
-				}
-
-				BasicChart.data.labels.push(name);
-				BasicChart.data.datasets[indexDataset].data.push(value);
-
-				BasicChart.update();
-				BasicChart.render();
-			}
-			//data_add(0, "Unreal", 10, true);
-
-			// Add new data to the target dataset.
-			function data_remove(indexDataset, indexValue, count)
-			{
-				BasicChart.data.labels.splice(indexValue, 1);
-				BasicChart.data.datasets[indexDataset].data.splice(indexValue, 1);
-
-				BasicChart.update();
-				BasicChart.render();
-			}
-			//data_remove(0, 0, 1);
-
-			function data_update_label(indexDataset, indexLabel, newLabel)
-			{
-				BasicChart.data.labels[indexLabel] = newLabel;
-
-				BasicChart.update();
-				BasicChart.render();
-			}
-			//data_update_label(0, 0, "Eray");
-
-			function data_update_value(indexDataset, indexValue, newValue)
-			{
-				BasicChart.data.datasets[indexDataset].data[indexValue] = newValue;
-
-				BasicChart.update();
-				BasicChart.render();
-			}
-			//data_update_value(0, 0, 30);
 
 		</script>
 	</body>
