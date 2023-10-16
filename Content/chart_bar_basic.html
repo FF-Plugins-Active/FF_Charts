@@ -4,12 +4,19 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js" integrity="sha512-UXumZrZNiOwnTcZSHLOfcTs0aos2MzBWHXOHOuB0J/R44QB0dwY5JgfbvljXcklVf65Gc4El6RjZ+lnwd2az2g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 	<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 	
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js" integrity="sha512-Xo0Jh8MsOn72LGV8kU5LsclG7SUzJsWGhXbWcYs2MAmChkQzwiW/yTQwdJ8w6UA9C6EVG18GHb/TrYpYCjyAQw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css" integrity="sha512-KXol4x3sVoO+8ZsWPFI/r5KBVB/ssCGB5tsv2nVOKwLg33wTFP3fmnXa47FdSVIshVTgsYk/1734xSk9aFIa4A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
 	<body>
 		
-		<button onclick="zoomHandlerReset()">Zoom Reset</button>
-		<button onclick="zoomHandlerOut()">Zoom Out</button>
+		<div class="three ui buttons">
+			<button class="ui blue button active"; style="color:white"; onclick="zoomHandlerReset()">Zoom Reset</button>
+			<button class="ui green button active"; style="color:white"; onclick="zoomHandlerOut()">Zoom Out</button>
+			<button class="ui yellow button active"; style="color:white"; onclick="renderHandler()">Render</button>
+		</div>
 
-		<div>
+		<div class="chart-container" style="position: relative; height:95vh; width:100vw">
 			<canvas id="unrealChart"></canvas>
 		</div>
 		
@@ -67,14 +74,17 @@
 					// https://www.chartjs.org/docs/latest/configuration/device-pixel-ratio.html
 					devicePixelRatio: window.devicePixelRatio,
 					responsive: true,
-		
+					animation: false,
+					maintainAspectRatio: false,
+					//aspectRatio: 1,
+
 					plugins: 
 					{
 						zoom: zoomOptions,
       						title:
 							{
         						display: true,
-        						position: 'bottom',
+        						position: 'top',
         						text: (ctx) => 'Zoom: ' + zoomStatus() + ', Pan: ' + panStatus()
 							}
 					},
@@ -108,6 +118,16 @@
 			// Construct chart based on configurations.
 			const ctx = document.getElementById('unrealChart');
 			const BasicChart = new Chart(ctx, ChartConfig);
+			
+			// Global API address variable for accessing Unreal Engine instance.
+			let UnrealApiAddress = "";
+
+			// We will use it for changing global API address variable from Unreal Engine.
+			function setUnrealApi(newAddress)
+			{
+				UnrealApiAddress = newAddress;
+				console.log(UnrealApiAddress);
+			}
 
 			// Zoom reset handler for button.
 			function zoomHandlerReset()
@@ -143,6 +163,35 @@
 			function zoomEventOut(outValue)
 			{
 				BasicChart.zoom(outValue);
+			}
+
+			function renderHandler()
+			{
+				var renderButton = document.createComment('button');
+				renderButton.innerText = "Render";
+
+				var body = document.getElementsByTagName("body")[0];
+				body.appendChild(renderButton);
+
+				renderEvent();
+			}
+
+			// We exposed it as function because we can trigger it from Unreal, too.
+			function renderEvent()
+			{
+				const base64String = BasicChart.toBase64Image('image/png', 1);
+				console.log(base64String);
+  				
+				/*
+				const downloadLink = document.createElement("a");
+				downloadLink.rel = "preload";
+				downloadLink.as = "image";
+				downloadLink.href = `data:${"image/png"};base64,${base64String}`;
+  				downloadLink.download = "image.png";
+  				downloadLink.click();
+				*/
+
+				// We will add additional API fetch functions to here.
 			}
 
 			// Click events.
@@ -260,6 +309,23 @@
 				BasicChart.render();
 			}
 			//dataset_change(0, "blue", "red", "y1", "Unreal Dataset New Name", 3, "bar");
+
+			function countDatasetElems(indexDataset)
+			{
+				const targetDataSet = BasicChart.data.datasets[indexDataset];
+				if(targetDataSet == null)
+				{
+					console.log("Target dataset is null.")
+					return;
+				}
+				
+				const currentLabel = targetDataSet.label;
+				BasicChart.data.datasets[indexDataset].label = "#" + Object.keys(BasicChart.data.labels).length + " " + currentLabel;
+
+				BasicChart.update();
+				BasicChart.render();
+			}
+			//countDatasetElems(0);
 
 			function data_add(indexDataset, newName, newValue, deleteBefore)
 			{
