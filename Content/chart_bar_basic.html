@@ -4,7 +4,7 @@
 	
 	<body>
 		<div>
-			<canvas id="myChart"></canvas>
+			<canvas id="unrealChart"></canvas>
 		</div>
 		<script>		
 			// Hide loader from screen.
@@ -13,8 +13,6 @@
 				document.getElementById('loading').style.display = 'none';
 			}
 		
-			const ctx = document.getElementById('myChart');
-			
 			const ChartConfig = {
 				// "bar", "line", "pie", "doughnut", "polarArea", "radar"
 				type: 'bar',
@@ -24,9 +22,11 @@
 					datasets: [
 					{
 						yAxisID: "y1",
-						label: '# of Votes',
+						label: 'Values',
 						data: [],
-						borderWidth: 3
+						borderWidth: 3,
+						//backgroundColor: "#9ad0f5",
+						hoverBackgroundColor: "red"
 					}
 				]
 				},
@@ -36,6 +36,7 @@
 					// https://www.chartjs.org/docs/latest/configuration/device-pixel-ratio.html
 					devicePixelRatio: window.devicePixelRatio,
 					responsive: true,
+		
 					scales: 
 					{
 						y1: 
@@ -62,8 +63,68 @@
 			}
 
 			// Construct chart based on configurations.
+			const ctx = document.getElementById('unrealChart');
 			const BasicChart = new Chart(ctx, ChartConfig);
 			
+			// Click events.
+			function clickHandler(click)
+			{
+				const points = BasicChart.getElementsAtEventForMode(click, 'nearest', { intersect: true }, true);
+				
+				if(Object.keys(points).length)
+				{
+					const firstPoint = points[0];
+
+					const indexDataset = firstPoint.datasetIndex;
+					const indexData = firstPoint.index;
+					
+					const dataLabel = BasicChart.data.labels[indexData];
+					const dataValue = BasicChart.data.datasets[indexDataset].data[indexData];
+					const datasetLabel = BasicChart.data.datasets[indexDataset].label;
+					
+					const clickString = "click&&" + dataLabel + "_" + dataValue + "&&" + indexDataset + "_" + indexData + "&&" + datasetLabel;
+					
+					console.log(clickString);
+
+					// We will add additional API fetch functions to here.
+				}
+			}
+
+			ctx.onclick = clickHandler;
+
+			let lastHovered;
+			function mouseMoveHandler(chart, mousemove)
+			{
+				const points = BasicChart.getElementsAtEventForMode(mousemove, 'nearest', { intersect: true }, true);
+				
+				if(Object.keys(points).length)
+				{
+					const firstPoint = points[0];
+
+					const indexDataset = firstPoint.datasetIndex;
+					const indexData = firstPoint.index;
+					
+					const dataLabel = BasicChart.data.labels[indexData];
+					const dataValue = BasicChart.data.datasets[indexDataset].data[indexData];
+					const datasetLabel = BasicChart.data.datasets[indexDataset].label;
+					
+					const clickString = "hover&&" + dataLabel + "_" + dataValue + "&&" + indexDataset + "_" + indexData + "&&" + datasetLabel;
+
+					if(lastHovered !== clickString)
+					{
+						lastHovered = clickString;
+						console.log(clickString);
+
+						// We will add additional API fetch functions to here.
+					}
+				}
+			}
+
+			BasicChart.canvas.addEventListener("mousemove", (e) =>
+			{
+				mouseMoveHandler(BasicChart, e);
+			});
+
 			// Change chart size based on browser size.
 			window.onresize = function()
 			{
@@ -88,10 +149,20 @@
 				BasicChart.update();
 				BasicChart.render();
 			}
-			dataset_add("red", "y2", "Unreal Dataset", 3, "bar");
+			//dataset_add("red", "y2", "Unreal Dataset", 3, "bar");
 
-			// Change label of target dataset.
-			function dataset_change_label(indexDataset, newLabel)
+			function dataset_remove(indexDataset, axisId)
+			{
+				BasicChart.data.datasets.splice(indexDataset, 1);
+				delete BasicChart.options.scales[axisId];
+
+				BasicChart.update();
+				BasicChart.render();
+			}
+			//dataset_remove(1, "y2");
+
+			// Change properties of target dataset. Supported types are "bar", "line", "pie", "doughnut", "polarArea", "radar".
+			function dataset_change(indexDataset, newColor, newHoveredColor, newAxisId, newLabel, newBorderWidth, newType)
 			{
 				const targetDataSet = BasicChart.data.datasets[indexDataset];
 				if(targetDataSet == null)
@@ -100,12 +171,17 @@
 					return;
 				}
 
+				targetDataSet.backgroundColor = newColor;
+				targetDataSet.hoverBackgroundColor  = newHoveredColor;
+				targetDataSet.yAxisID = newAxisId;
 				targetDataSet.label = newLabel;
+				targetDataSet.borderWidth = newBorderWidth;
+				targetDataSet.type = newType;
 				
 				BasicChart.update();
 				BasicChart.render();
 			}
-			//dataset_change_label(1, "Unreal Dataset New Name");
+			//dataset_change(0, "blue", "red", "y1", "Unreal Dataset New Name", 3, "bar");
 
 			function data_add(indexDataset, newName, newValue, deleteBefore)
 			{
@@ -153,8 +229,8 @@
 				BasicChart.update();
 				BasicChart.render();
 			}
-			data_add(0, ['eray', 'burak', 'mustafa'], [10, 5, 9], false);
-			//data_add(0, ['c++', 'flutter', 'adeko'], [20, 10, 18], true);
+			data_add(0, ['data1', 'data2', 'data3'], [10, 5, 9], false);
+			//data_add(1, ['c++', 'flutter', 'after_effects'], [0.1, 0.5, 0.9], true);
 
 			// Add new data to the target dataset.
 			function data_remove(indexDataset, indexValue, count, bDeleteLabel, bSetZero)
@@ -249,7 +325,7 @@
 				BasicChart.update();
 				BasicChart.render();
 			}
-			axis_set_style("y2", true, true, "New Axis", "red", "left", 24, "bold");
+			//axis_set_style("y2", true, true, "New Axis", "red", "left", 24, "bold");
 
 			function axis_add_grid(axisId, threshold, smallerColor, biggerColor, equalColor)
 			{
