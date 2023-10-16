@@ -1,19 +1,50 @@
 <!DOCTYPE html>
 <html>
 	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js" integrity="sha512-UXumZrZNiOwnTcZSHLOfcTs0aos2MzBWHXOHOuB0J/R44QB0dwY5JgfbvljXcklVf65Gc4El6RjZ+lnwd2az2g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 	
 	<body>
+		
+		<button onclick="zoomHandlerReset()">Zoom Reset</button>
+		<button onclick="zoomHandlerOut()">Zoom Out</button>
+
 		<div>
 			<canvas id="unrealChart"></canvas>
 		</div>
+		
 		<script>		
 			// Hide loader from screen.
 			function hideloader() 
 			{
 				document.getElementById('loading').style.display = 'none';
 			}
+
+			// We need to construction zoom options before chart options. Because we use this in it.
+			const zoomOptions = 
+			{
+  				pan: 
+				{
+    				enabled: true,
+    				modifierKey: 'ctrl'
+  				},
+  				
+				zoom: 
+				{
+    				drag: 
+					{
+      					enabled: true
+    				},
+    			
+					mode: 'xy'
+				}
+			};
+
+			const panStatus = () => zoomOptions.pan.enabled ? 'enabled' : 'disabled';
+			const zoomStatus = () => zoomOptions.zoom.drag.enabled ? 'enabled' : 'disabled';
 		
-			const ChartConfig = {
+			const ChartConfig = 
+			{
 				// "bar", "line", "pie", "doughnut", "polarArea", "radar"
 				type: 'bar',
 				data: 
@@ -37,8 +68,20 @@
 					devicePixelRatio: window.devicePixelRatio,
 					responsive: true,
 		
+					plugins: 
+					{
+						zoom: zoomOptions,
+      						title:
+							{
+        						display: true,
+        						position: 'bottom',
+        						text: (ctx) => 'Zoom: ' + zoomStatus() + ', Pan: ' + panStatus()
+							}
+					},
+
 					scales: 
 					{
+
 						y1: 
 						{
 							display: true,
@@ -65,7 +108,43 @@
 			// Construct chart based on configurations.
 			const ctx = document.getElementById('unrealChart');
 			const BasicChart = new Chart(ctx, ChartConfig);
-			
+
+			// Zoom reset handler for button.
+			function zoomHandlerReset()
+			{
+				var zoomButtonReset = document.createComment('button');
+				zoomButtonReset.innerText = "Zoom Reset";
+
+				var body = document.getElementsByTagName("body")[0];
+				body.appendChild(zoomButtonReset);
+
+				zoomEventReset();
+			}
+
+			// We exposed it as function because we can trigger it from Unreal, too.
+			function zoomEventReset()
+			{
+				BasicChart.resetZoom();
+			}
+
+			// Zoom out handler for button.
+			function zoomHandlerOut()
+			{
+				var zoomButtonOut = document.createComment('button');
+				zoomButtonOut.innerText = "Zoom Out";
+
+				var body = document.getElementsByTagName("body")[0];
+				body.appendChild(zoomButtonOut);
+
+				zoomEventOut(0.1);
+			}
+
+			// We exposed it as function because we can trigger it from Unreal, too.
+			function zoomEventOut(outValue)
+			{
+				BasicChart.zoom(outValue);
+			}
+
 			// Click events.
 			function clickHandler(click)
 			{
@@ -89,7 +168,6 @@
 					// We will add additional API fetch functions to here.
 				}
 			}
-
 			ctx.onclick = clickHandler;
 
 			let lastHovered;
@@ -230,7 +308,7 @@
 				BasicChart.render();
 			}
 			data_add(0, ['data1', 'data2', 'data3'], [10, 5, 9], false);
-			//data_add(1, ['c++', 'flutter', 'after_effects'], [0.1, 0.5, 0.9], true);
+			data_add(0, ['c++', 'flutter', 'after_effects'], [0.1, 0.5, 0.9], false);
 
 			// Add new data to the target dataset.
 			function data_remove(indexDataset, indexValue, count, bDeleteLabel, bSetZero)
@@ -360,5 +438,6 @@
 			//axis_add_grid('y1', 10, "red", "green", "black");
 
 		</script>
+		
 	</body>
 </html>
