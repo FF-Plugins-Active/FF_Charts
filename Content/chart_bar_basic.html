@@ -10,10 +10,11 @@
 
 	<body>
 		
-		<div class="three ui buttons">
+		<div class="four ui buttons">
 			<button class="ui blue button active"; style="color:white"; onclick="zoomHandlerReset()">Zoom Reset</button>
 			<button class="ui green button active"; style="color:white"; onclick="zoomHandlerOut()">Zoom Out</button>
-			<button class="ui yellow button active"; style="color:white"; onclick="renderHandler()">Render</button>
+			<button class="ui yellow button active"; style="color:white"; onclick="renderAndSendHandler()">Render and Send</button>
+			<button class="ui purple button active"; style="color:white"; onclick="renderAndDownloadHandler()">Render and Download</button>
 		</div>
 
 		<div class="chart-container" style="position: relative; height:95vh; width:100vw">
@@ -115,6 +116,8 @@
 				}
 			}
 
+			// https://www.freecodecamp.org/news/make-api-calls-in-javascript/#asynchronous-javascript
+
 			// Global API address variable for accessing Unreal Engine instance.
 			let UnrealApiAddress = "";
 
@@ -167,19 +170,19 @@
 				BasicChart.zoom(outValue);
 			}
 
-			function renderHandler()
+			function renderAndSendHandler()
 			{
-				var renderButton = document.createComment('button');
-				renderButton.innerText = "Render";
+				var renderAndSendButton = document.createComment('button');
+				renderAndSendButton.innerText = "Render";
 
 				var body = document.getElementsByTagName("body")[0];
-				body.appendChild(renderButton);
+				body.appendChild(renderAndSendButton);
 
-				renderEvent();
+				eventRenderAndSend();
 			}
 
 			// We exposed it as function because we can trigger it from Unreal, too.
-			function renderEvent()
+			function eventRenderAndSend()
 			{
 				const base64String = BasicChart.toBase64Image('image/png', 1);
 				console.log(base64String);
@@ -211,18 +214,35 @@
       					console.error('Error:', error);
     				});
 
-					console.log("Image sent.");
+				console.log("Image sent.");
+			}
 
-				/*
-				const downloadLink = document.createElement("a");
-				downloadLink.rel = "preload";
-				downloadLink.as = "image";
-				downloadLink.href = `data:${"image/png"};base64,${base64String}`;
-  				downloadLink.download = "image.png";
-  				downloadLink.click();
-				*/
+			function renderAndDownloadHandler()
+			{
+				var renderAndDownloadButton = document.createComment('button');
+				renderAndDownloadButton.innerText = "Render";
 
-				// We will add additional API fetch functions to here.
+				var body = document.getElementsByTagName("body")[0];
+				body.appendChild(renderAndDownloadButton);
+
+				renderAndDownload();
+			}
+
+			function renderAndDownload()
+			{
+				const base64String = BasicChart.toBase64Image('image/png', 1);
+				console.log(base64String);
+
+  				const requestOptions = 
+				{
+    				method: 'POST',
+    				body: base64String,
+  				};
+
+				var DownloadElem = document.createElement('a');
+				DownloadElem.href = base64String;
+				DownloadElem.download = 'image.png';
+				DownloadElem.click();
 			}
 
 			// Click events.
