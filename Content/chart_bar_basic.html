@@ -60,7 +60,7 @@
 					datasets: [
 					{
 						yAxisID: "y1",
-						label: 'Values',
+						label: 'Vibration',
 						data: [],
 						borderWidth: 3,
 						//backgroundColor: "#9ad0f5",
@@ -115,10 +115,6 @@
 				}
 			}
 
-			// Construct chart based on configurations.
-			const ctx = document.getElementById('unrealChart');
-			const BasicChart = new Chart(ctx, ChartConfig);
-			
 			// Global API address variable for accessing Unreal Engine instance.
 			let UnrealApiAddress = "";
 
@@ -128,7 +124,13 @@
 				UnrealApiAddress = newAddress;
 				console.log(UnrealApiAddress);
 			}
+			setUnrealApi("http://127.0.0.1:8081/api/6");
+			//setUnrealApi("http://127.0.0.1:8081/post/eray");
 
+			// Construct chart based on configurations.
+			const ctx = document.getElementById('unrealChart');
+			const BasicChart = new Chart(ctx, ChartConfig);
+			
 			// Zoom reset handler for button.
 			function zoomHandlerReset()
 			{
@@ -181,7 +183,36 @@
 			{
 				const base64String = BasicChart.toBase64Image('image/png', 1);
 				console.log(base64String);
-  				
+
+  				const requestOptions = 
+				{
+    				method: 'POST',
+    				body: base64String,
+  				};
+
+  				fetch(UnrealApiAddress, requestOptions)
+    				.then(response =>
+					{
+      					if (!response.ok) 
+						{
+        					throw new Error('Network response was not ok');
+      					}
+      					
+						return response.text();
+    				})
+    
+					.then(data =>
+					{
+						data = base64String;
+    				})
+    
+					.catch(error => 
+					{
+      					console.error('Error:', error);
+    				});
+
+					console.log("Image sent.");
+
 				/*
 				const downloadLink = document.createElement("a");
 				downloadLink.rel = "preload";
@@ -276,7 +307,7 @@
 				BasicChart.update();
 				BasicChart.render();
 			}
-			//dataset_add("red", "y2", "Unreal Dataset", 3, "bar");
+			dataset_add("red", "y2", "Heat", 3, "bar");
 
 			function dataset_remove(indexDataset, axisId)
 			{
@@ -326,8 +357,29 @@
 				BasicChart.render();
 			}
 			//countDatasetElems(0);
+			
+			function label_add(newName, deleteBefore)
+			{
+				if(newName == null)
+				{
+					console.log("Name should not be null.")
+					return;
+				}
 
-			function data_add(indexDataset, newName, newValue, deleteBefore)
+				if(deleteBefore && Object.keys(BasicChart.data.labels).length > 0)
+				{
+					BasicChart.data.labels.splice(0, Object.keys(newName).length);
+				}
+
+				newName.forEach(element => 
+				{
+					BasicChart.data.labels.push(element);
+				});
+			}
+			label_add(['January', 'February', 'March'], false);
+			label_add(['April'], false);
+
+			function data_add(indexDataset, newValue, deleteBefore)
 			{
 				const targetDataSet = BasicChart.data.datasets[indexDataset];
 				if(targetDataSet == null)
@@ -336,45 +388,31 @@
 					return;
 				}
 
-				if(newName !== null)
+				if(newValue == null)
 				{
-					if(deleteBefore)
-					{
-						BasicChart.data.labels.splice(0, Object.keys(newName).length);
-					}
-
-					newName.forEach(element => 
-					{
-						BasicChart.data.labels.push(element);
-					});
+					console.log("Values shouldn't be null.")
 				}
 
-				if(newValue !== null)
+				if(Object.keys(BasicChart.data.labels).length == 0)
 				{
-					if(deleteBefore)
-					{
-						targetDataSet.data.splice(0, Object.keys(newValue).length);
-					}
-
-					if(newName !== null || BasicChart.data.labels.lenght > 0)
-					{
-						newValue.forEach(element =>
-						{
-							targetDataSet.data.push(element);
-						});
-					}
-					
-					else
-					{
-						console.log("There is no label for value.")
-					}
+					console.log("Labels shouldn't be empty.")
 				}
+
+				if(deleteBefore)
+				{
+					targetDataSet.data.splice(0, Object.keys(newValue).length);
+				}
+
+				newValue.forEach(element =>
+				{
+					targetDataSet.data.push(element);
+				});
 				
 				BasicChart.update();
 				BasicChart.render();
 			}
-			data_add(0, ['data1', 'data2', 'data3'], [10, 5, 9], false);
-			data_add(0, ['c++', 'flutter', 'after_effects'], [0.1, 0.5, 0.9], false);
+			data_add(0, [10, 5, 8, 3], false);
+			data_add(1, [1, 0.5, 0.8, 0.3], false);
 
 			// Add new data to the target dataset.
 			function data_remove(indexDataset, indexValue, count, bDeleteLabel, bSetZero)
@@ -469,7 +507,7 @@
 				BasicChart.update();
 				BasicChart.render();
 			}
-			//axis_set_style("y2", true, true, "New Axis", "red", "left", 24, "bold");
+			axis_set_style("y2", true, true, "New Axis", "red", "left", 24, "bold");
 
 			function axis_add_grid(axisId, threshold, smallerColor, biggerColor, equalColor)
 			{
