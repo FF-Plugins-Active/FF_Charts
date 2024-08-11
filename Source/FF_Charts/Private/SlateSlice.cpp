@@ -79,6 +79,17 @@ FReply SSlateSlice::OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent
 
 int32 SSlateSlice::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
+	auto CalculateUV = [](const FVector2D& Point, const FVector2D& Center, double Radius) -> FVector2D
+		{
+			// Normalize direction
+			FVector2D Direction = (Point - Center) / Radius;
+			
+			float U = 0.5f + Direction.X * 0.5f;
+			float V = 0.5f + Direction.Y * 0.5f;
+			
+			return FVector2D(U, V);
+		};
+
 	const FVector2D Pos = AllottedGeometry.GetAbsolutePosition();
 	const FVector2D Size = AllottedGeometry.GetAbsoluteSize();
 	const FVector2D Center = Pos + 0.5 * Size;
@@ -95,11 +106,11 @@ int32 SSlateSlice::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeom
 	// Add center vertex
 	Vertices.AddZeroed();
 	FSlateVertex& CenterVertex = Vertices.Last();
-	CenterVertex.Position = (FVector2f)Center;
+	CenterVertex.Position = (FVector2f)(Center);
 	CenterVertex.Color = FinalColorAndOpacity;
 	CenterVertex.SecondaryColor = SecondaryColor;
-	//CenterVertex.MaterialTexCoords = FVector2f(0, 0);
-	//CenterVertex.SetTexCoords(FVector4f(0, 0, 0, 0));
+	CenterVertex.TexCoords[0] = CalculateUV(Center, Center, Radius).X;
+	CenterVertex.TexCoords[1] = CalculateUV(Center, Center, Radius).Y;
 
 	// Add edge vertices
 	for (int i = 0; i < NumSegments + 2; ++i)
@@ -107,14 +118,15 @@ int32 SSlateSlice::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeom
 		const double CurrentAngle = FMath::DegreesToRadians(ArcSize * i / NumSegments + Angle);
 		const FVector2D EdgeDirection(FMath::Cos(CurrentAngle), FMath::Sin(CurrentAngle));
 		const FVector2D OuterEdge(Radius * EdgeDirection);
+		const FVector2D EndPoint = (FVector2D)(Center + OuterEdge);
 
 		Vertices.AddZeroed();
 		FSlateVertex& OuterVert = Vertices.Last();
-		OuterVert.Position = (FVector2f)(Center + OuterEdge);
+		OuterVert.Position = (FVector2f)(EndPoint);
 		OuterVert.Color = FinalColorAndOpacity;
 		OuterVert.SecondaryColor = SecondaryColor;
-		//OuterVert.MaterialTexCoords = FVector2f(EdgeDirection.X, EdgeDirection.Y);
-		//OuterVert.SetTexCoords(FVector4f(EdgeDirection.X, EdgeDirection.Y, EdgeDirection.X, EdgeDirection.Y));
+		OuterVert.TexCoords[0] = CalculateUV(EndPoint, Center, Radius).X;
+		OuterVert.TexCoords[1] = CalculateUV(EndPoint, Center, Radius).Y;
 	}
 
 	TArray<SlateIndex> Indices;
@@ -127,7 +139,6 @@ int32 SSlateSlice::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeom
 
 	const FSlateResourceHandle Handle = FSlateApplication::Get().GetRenderer()->GetResourceHandle(*SlateBrush);
 	FSlateDrawElement::MakeCustomVerts(OutDrawElements, LayerId, Handle, Vertices, Indices, nullptr, 0, 0, ESlateDrawEffect::PreMultipliedAlpha);
-
 	FHittestGrid& PreviousGrid = Args.GetHittestGrid();
 
 	return LayerId;

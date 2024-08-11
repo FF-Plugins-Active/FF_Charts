@@ -3,10 +3,6 @@
 #include "FF_ChartsBPLibrary.h"
 #include "FF_Charts.h"
 
-THIRD_PARTY_INCLUDES_START
-
-THIRD_PARTY_INCLUDES_END
-
 UFF_ChartsBPLibrary::UFF_ChartsBPLibrary(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
@@ -19,12 +15,13 @@ void UFF_ChartsBPLibrary::Int32ToGraphics(EGraphicsType GraphicsType, int32 Targ
 
     switch (GraphicsType)
     {
-    case EGraphicsType::ChartPie:
-        FullScale = 360;
-        break;
-    case EGraphicsType::ChartBar:
-        FullScale = 100;
-        break;
+        case EGraphicsType::ChartPie:
+            FullScale = 360;
+            break;
+        
+        case EGraphicsType::ChartBar:
+            FullScale = 100;
+            break;
     }
 
     Scale = (static_cast<double>(TargetInteger) * FullScale) / FullInteger;

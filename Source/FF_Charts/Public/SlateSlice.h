@@ -7,6 +7,14 @@
 
 class FF_CHARTS_API SSlateSlice : public SCompoundWidget
 {
+
+protected:
+
+	FInvalidatableBrushAttribute Brush;
+	FColor SecondaryColor = FColor::White;
+	double Angle;
+	double ArcSize;
+
 public:
 	
 	SLATE_BEGIN_ARGS(SSlateSlice)
@@ -20,29 +28,11 @@ public:
 	TSharedPtr<FHittestGrid> HittestGrid;
 
 	void Construct(const FArguments& InArgs);
-
 	virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
-
 	virtual FReply OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 
 	void SetBrush(FSlateBrush* InBrush);
-
-public:
-	
 	void SetAngle(double InAngle);
-	
 	void SetArcSize(double InArcSize);
-
 	void SetSecondaryColor(FColor InSecondaryColor);
-
-protected:
-
-	FInvalidatableBrushAttribute Brush;
-	
-	FColor SecondaryColor = FColor::White;
-
-	double Angle;
-	
-	double ArcSize;
-
 };
