@@ -108,13 +108,12 @@ FReply SSlateSlice::CallbackCursorHit(const FGeometry& MyGeometry, const FPointe
 	const FVector2D Fixed_CursorPos = FVector2D(CursorPos.X, MyGeometry.GetRenderBoundingRect().GetBottomLeft2f().Y - CursorPos.Y);
 	const FVector2D Fixed_Center = FVector2D(Center.X, MyGeometry.GetRenderBoundingRect().GetBottomLeft2f().Y - Center.Y);
 	const double Yaw = -1 * UKismetMathLibrary::FindLookAtRotation(FVector(Fixed_Center.X, Fixed_Center.Y, double(0)), FVector(Fixed_CursorPos.X, Fixed_CursorPos.Y, double(0))).Yaw;
-	double Angle_Cursor = Yaw >= 0 ? Angle_Cursor = Yaw : Angle_Cursor = 360 + Yaw;
-
-	const double Angle_Space = 360 - ArcSize;
-	const double Difference = Angle - Angle_Space;
+	double Angle_Cursor = Yaw >= 0 ? Yaw : 360 + Yaw;
+	const double Difference = Angle - (360 - ArcSize);
 
 	double Range_Min = 0;
 	double Range_Max = 0;
+	
 	if (Difference < 0)
 	{
 		Range_Min = Angle;
