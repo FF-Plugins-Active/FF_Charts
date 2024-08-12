@@ -10,15 +10,6 @@ public class FF_Charts : ModuleRules
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
-        if (UnrealTargetPlatform.Win64 == Target.Platform)
-        {
-            string Include_Matplot = "../Source/FF_Charts/ThirdParty/matplot/Windows/include";
-            PrivateIncludePaths.Add(Include_Matplot);
-
-            PublicAdditionalLibraries.Add(Path.Combine(ModuleDirectory, "ThirdParty", "matplot", "Windows", "lib", "matplot.lib"));
-            PublicAdditionalLibraries.Add(Path.Combine(ModuleDirectory, "ThirdParty", "matplot", "Windows", "lib", "nodesoup.lib"));
-        }
-
         PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
