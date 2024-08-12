@@ -86,21 +86,16 @@ bool UFF_ChartsBPLibrary::DetectPie(const FGeometry& MyGeometry, const FPointerE
 	}
 }
 
-bool UFF_ChartsBPLibrary::DetectPieRecursive(int32& Out_Index, const FGeometry& MyGeometry, const FPointerEvent& MouseEvent, TMap<double, double> Pies)
+bool UFF_ChartsBPLibrary::DetectPieRecursive(USliceWidget*& Out_Widget, const FGeometry& MyGeometry, const FPointerEvent& MouseEvent, TArray<FPieStruct> Pies)
 {
-	TArray<double> Array_Angles;
-	Pies.GenerateKeyArray(Array_Angles);
-
 	bool bRetVal = false;
-	for (int32 Index_Pies = 0; Index_Pies < Array_Angles.Num(); Index_Pies++)
-	{
-		const double EachAngle = Array_Angles[Index_Pies];
-		const double EachSize = *Pies.Find(EachAngle);
 
-		if (UFF_ChartsBPLibrary::DetectPie(MyGeometry, MouseEvent, EachSize, EachAngle))
+	for (FPieStruct EachPie : Pies)
+	{
+		if (UFF_ChartsBPLibrary::DetectPie(MyGeometry, MouseEvent, EachPie.ArcSize, EachPie.ArcAngle))
 		{
-			Out_Index = Index_Pies;
 			bRetVal = true;
+			Out_Widget = EachPie.TargetWidget;
 		}
 	}
 
