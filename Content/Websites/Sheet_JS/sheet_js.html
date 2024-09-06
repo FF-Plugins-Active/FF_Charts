@@ -41,8 +41,6 @@
 	
 		<script>
 
-			const buttonContainer = document.getElementById('buttonContainer');
-
 			class SheetButton extends HTMLButtonElement
 			{
 				index = 0;
@@ -56,6 +54,9 @@
 
 			let data;
 			let workbook;
+			const mainColor = 'blue';
+			const activeColor = 'red';
+			const buttonContainer = document.getElementById('buttonContainer');
 
 			async function clickHandler(SheetButton)
 			{
@@ -63,9 +64,22 @@
 				{
 					try
 					{
+						const array_buttons = buttonContainer.children;
+
+						for (let i = 0; i < array_buttons.length; i++)
+						{
+							const child = array_buttons[i];
+							const target_color = child.classList[3];
+							child.classList.replace(target_color, mainColor);
+						}
+
+						const target_color = SheetButton.classList[3];
+						SheetButton.classList.replace(target_color, activeColor);
+
 						const TargetSheetName = workbook.SheetNames[SheetButton.index];
 						const TargetSheet = workbook.Sheets[TargetSheetName];
 						const jsonData = XLSX.utils.sheet_to_json(TargetSheet, { header: 1 });
+						
 						displayExcelData(jsonData);
 						resolve();
 					}
@@ -104,7 +118,17 @@
 					{
 						var Button = document.createElement('sheet-button');
 						Button.index = SheetNumber;
-						Button.classList.add('ui', 'button', 'red');
+						
+						if(SheetNumber == 0)
+						{
+							Button.classList.add('ui', 'button', 'toggle', activeColor);
+						}
+
+						else
+						{
+							Button.classList.add('ui', 'button', 'toggle', mainColor);
+						}
+						
 						Button.textContent  = sheetname;
 						Button.addEventListener('click', (e) =>
 						{
@@ -135,12 +159,21 @@
 				
 				data.forEach((row, rowIndex) => 
 				{
-				table += '<tr>';
-				row.forEach((cell, colIndex) => 
-				{
-					table += `<td><button class="ui blue button" onclick="handleClick(${rowIndex}, ${colIndex}, '${cell || ''}')">${cell || ''}</button></td>`;
-				});
-				table += '</tr>';
+					table += '<tr>';
+					row.forEach((cell, colIndex) => 
+					{
+						if(!cell)
+						{
+							table += `<td></td>`;
+						}
+
+						else
+						{
+							table += `<td><button class="ui blue button" onclick="handleClick(${rowIndex}, ${colIndex}, '${cell || ''}')">${cell || ''}</button></td>`;
+						}
+					});
+					
+					table += '</tr>';
 				});
 				
 				table += '</table>';
