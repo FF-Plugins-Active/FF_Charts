@@ -38,8 +38,10 @@
 		<!-- Table to display Excel data -->
 		<div id="excelData"></div>
 		<div id="buttonContainer" class="ui buttons"></div>
-
+	
 		<script>
+
+			const buttonContainer = document.getElementById('buttonContainer');
 
 			class SheetButton extends HTMLButtonElement
 			{
@@ -50,7 +52,31 @@
 					this.index = index;
 				}
 			}
+			customElements.define('sheet-button', SheetButton, { extends: 'button' });
 
+			let data;
+			let workbook;
+
+			async function clickHandler(SheetButton)
+			{
+				return new Promise((resolve, reject) => 
+				{
+					try
+					{
+						const TargetSheetName = workbook.SheetNames[SheetButton.index];
+						const TargetSheet = workbook.Sheets[TargetSheetName];
+						const jsonData = XLSX.utils.sheet_to_json(TargetSheet, { header: 1 });
+						displayExcelData(jsonData);
+						resolve();
+					}
+
+					catch(error)
+					{
+						console.log(error);
+						reject(error); 
+					}
+				});
+			}
 			// Function to handle file input change event
 			document.getElementById('fileInput').addEventListener('change', function(e)
 			{
@@ -61,26 +87,26 @@
 				
 				reader.onload = function(event)
 				{
-					const data = new Uint8Array(event.target.result);
-					const workbook = XLSX.read(data, { type: 'array' });
-
-					function clickHandler(SheetButton)
+					try
 					{
-						const TargetSheetName = workbook.SheetNames[SheetButton.index];
-						const TargetSheet = workbook.Sheets[TargetSheetName];
-						const jsonData = XLSX.utils.sheet_to_json(TargetSheet, { header: 1 });
-						displayExcelData(jsonData);
+						data = new Uint8Array(event.target.result);
+						workbook = XLSX.read(data, { type: 'array' });
 					}
 
+					catch (error)
+					{
+						console.error("Error while reading file:", error);
+					}
+				
 					// Get all sheets
 					let SheetNumber = 0;
 					workbook.SheetNames.forEach(sheetname => 
 					{
-						var Button = document.createElement('SheetButton');
+						var Button = document.createElement('sheet-button');
 						Button.index = SheetNumber;
 						Button.classList.add('ui', 'button', 'red');
 						Button.textContent  = sheetname;
-						Button.addEventListener('click', function()
+						Button.addEventListener('click', (e) =>
 						{
 							clickHandler(Button);
 						});
